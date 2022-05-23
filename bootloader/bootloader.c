@@ -2,11 +2,9 @@
 #include <efi/efilib.h>
 #include <elf.h>
 
-#define UEFI_MEMORY_DESCRIPTOR_BUFFER_SIZE (512)
 #define MAX_PROGRAM_HEADER_TABLE_SIZE (512)
 #define GRAPHIC_MODE_NUMBER (10)
 
-static EFI_MEMORY_DESCRIPTOR descriptor_buffer[UEFI_MEMORY_DESCRIPTOR_BUFFER_SIZE];
 static Elf64_Phdr program_header_table[MAX_PROGRAM_HEADER_TABLE_SIZE];
 
 static int strcmp(const char* const a, const char* const b, uint64_t size)
