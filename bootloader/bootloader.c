@@ -102,31 +102,6 @@ static EFI_STATUS set_graphic_mode(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const gra
     return status;
 }
 
-static EFI_STATUS get_graphic_frame_buffer_data(
-    const EFI_GRAPHICS_OUTPUT_PROTOCOL* const graphics_output, BootData* const boot_data)
-{
-    /* Unsupported pixel format. */
-    if (graphics_output->Mode->Info->PixelFormat != PixelRedGreenBlueReserved8BitPerColor &&
-        graphics_output->Mode->Info->PixelFormat != PixelBlueGreenRedReserved8BitPerColor) {
-        return EFI_ABORTED;
-    }
-
-#ifdef DEBUG_BOOT_GRAPHIC
-    print_graphic_modes(graphics_output);
-#endif
-
-    GraphicFrameBufferData* const buffer_data = &boot_data->frame_buffer_data;
-
-    buffer_data->address = graphics_output->Mode->FrameBufferBase;
-    buffer_data->size = graphics_output->Mode->FrameBufferSize;
-    buffer_data->width = graphics_output->Mode->Info->HorizontalResolution;
-    buffer_data->height = graphics_output->Mode->Info->VerticalResolution;
-    buffer_data->pixel_format = graphics_output->Mode->Info->PixelFormat;
-    buffer_data->pixel_per_scanline = graphics_output->Mode->Info->PixelsPerScanLine;
-
-    return EFI_SUCCESS;
-}
-
 static EFI_STATUS load_font_psf1(const EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* const simple_file_system,
                                  BootData* const boot_data, EFI_FILE_PROTOCOL* const root,
                                  const CHAR16* const path)
@@ -378,13 +353,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     Print(L"Kernel Info:\n");
     Print(L"StartAddress: 0x%X, EndAddress: 0x%X\n", boot_data.kernel_start_address,
           boot_data.kernel_end_address);
-
-    Print(L"Get graphic frame buffer info.\n");
-    status = get_graphic_frame_buffer_data(graphics_output, &boot_data);
-    if (EFI_ERROR(status)) {
-        Print(L"Failed to get graphic frame buffer information. %r\n", status);
-        goto ERROR;
-    }
 
     Print(L"Graphic Frame Buffer Info:\n");
     Print(L"BaseAddress: 0x%X, BufferSize: %u, Width: %u, Height: %u\n",
