@@ -61,7 +61,7 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address, const EFI_FILE
         elf_header.e_ident[EI_VERSION] != EV_CURRENT || elf_header.e_machine != EM_X86_64 ||
         elf_header.e_version != EV_CURRENT ||
         (elf_header.e_type != ET_EXEC && elf_header.e_type != ET_DYN)) {
-        Print(L"Kernel ELF header is invalid.\n");
+        Print(u"Kernel ELF header is invalid.\n");
         return EFI_ABORTED;
     }
 
@@ -71,8 +71,8 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address, const EFI_FILE
     uefi_call_wrapper(kernel_file->Read, 3, kernel_file, &program_header_table_size,
                       program_header_table);
     if (program_header_table_size != elf_header.e_phentsize * elf_header.e_phnum) {
-        Print(L"Failed to read the program hdaer table.\n");
-        Print(L"Read program header size %lu", program_header_table_size);
+        Print(u"Failed to read the program hdaer table.\n");
+        Print(u"Read program header size %lu", program_header_table_size);
         return EFI_ABORTED;
     }
 
@@ -173,14 +173,14 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address, const EFI_FILE
         uefi_call_wrapper(kernel_file->Read, 3, kernel_file, &current_segment_file_size,
                           (void*)current_load_address);
         if (current_segment_file_size != program_header_table[i].p_filesz) {
-            Print(L"Failed to load the kernel.\n");
+            Print(u"Failed to load the kernel.\n");
             return EFI_ABORTED;
         }
     }
 
 #ifdef DEBUG_KERNEL_LOAD
-    Print(L"KernelStartAddress: 0x%X", kernel_start_address);
-    Print(L"KernelEndAddress: 0x%X\n", current_load_address + last_loadable_segment_size);
+    Print(u"KernelStartAddress: 0x%X", kernel_start_address);
+    Print(u"KernelEndAddress: 0x%X\n", current_load_address + last_loadable_segment_size);
 #endif
 
     return 0;
@@ -195,7 +195,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     status = uefi_call_wrapper(BS->LocateProtocol, 3, &gEfiSimpleFileSystemProtocolGuid, NULL,
                                (void**)&simple_file_system);
     if (EFI_ERROR(status)) {
-        Print(L"Failed to locate SimpleFileSystemProtocol. %r\n", status);
+        Print(u"Failed to locate SimpleFileSystemProtocol. %r\n", status);
         goto ERROR;
     }
 
@@ -203,36 +203,36 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     status = uefi_call_wrapper(BS->LocateProtocol, 3, &gEfiGraphicsOutputProtocolGuid, NULL,
                                (void**)&graphics_output);
     if (EFI_ERROR(status)) {
-        Print(L"Failed to locate GraphicsOutputProtocol. %r\n", status);
+        Print(u"Failed to locate GraphicsOutputProtocol. %r\n", status);
         goto ERROR;
     }
 
-    Print(L"Set graphic mode.\n");
+    Print(u"Set graphic mode.\n");
     status = set_graphic_mode(graphics_output);
     if (EFI_ERROR(status)) {
-        Print(L"Failed to set graphic mode. %r\n", status);
+        Print(u"Failed to set graphic mode. %r\n", status);
         goto ERROR;
     }
 
-    Print(L"Open kernel file.\n");
+    Print(u"Open kernel file.\n");
     EFI_FILE* kernel_file = NULL;
-    status = open_file(simple_file_system, &kernel_file, NULL, L"kernel.elf");
+    status = open_file(simple_file_system, &kernel_file, NULL, u"kernel.elf");
     if (EFI_ERROR(status)) {
-        Print(L"Failed to open kernel file. %r\n", status);
+        Print(u"Failed to open kernel file. %r\n", status);
         goto ERROR;
     }
 
-    Print(L"Load kernel ELF file.\n");
+    Print(u"Load kernel ELF file.\n");
     uint64_t kernel_start_address;
     status = load_kernel_elf(&kernel_start_address, kernel_file);
     if (EFI_ERROR(status)) {
-        Print(L"Failed to load kernel ELF file. %r\n", status);
+        Print(u"Failed to load kernel ELF file. %r\n", status);
         goto ERROR;
     }
 
-    Print(L"Start kernel.\n");
+    Print(u"Start kernel.\n");
     int (*start_kernel)() = (__attribute__((sysv_abi)) int (*)())kernel_start_address;
-    Print(L"%d\n", start_kernel());
+    Print(u"%d\n", start_kernel());
 
     // This should be not reached...
     return EFI_ABORTED;
