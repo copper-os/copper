@@ -20,60 +20,6 @@ static int strcmp(const char* const a, const char* const b, uint64_t size)
     return 0;
 }
 
-#ifdef DEBUG_BOOT_MEMORY
-static void print_memory_map(const EFI_MEMORY_DESCRIPTOR* const descriptor_buffer,
-                             const UINTN descriptor_buffer_size, const UINTN descriptor_size)
-{
-    static char* memory_types[] = {"EfiReservedMemoryType",
-                                   "EfiLoaderCode",
-                                   "EfiLoaderData",
-                                   "EfiBootServicesCode",
-                                   "EfiBootServicesData",
-                                   "EfiRuntimeServicesCode",
-                                   "EfiRuntimeServicesData",
-                                   "EfiConventionalMemory",
-                                   "EfiUnusableMemory",
-                                   "EfiACPIReclaimMemory",
-                                   "EfiACPIMemoryNVS",
-                                   "EfiMemoryMappedIO",
-                                   "EfiMemoryMappedIOPortSpace",
-                                   "EfiPalCode"};
-
-    uint64_t total_frame_number = 0;
-
-    uefi_memory_descriptor_for_each(d, descriptor_buffer, descriptor_buffer_size, descriptor_size)
-    {
-        Print(L"%a, %u KB\n", memory_types[d->Type], d->NumberOfPages * 4);
-        total_frame_number += d->NumberOfPages;
-    }
-
-    Print(L"Total: %u KB\n", total_frame_number);
-}
-#endif
-
-#ifdef DEBUG_BOOT_GRAPHIC
-static EFI_STATUS print_graphic_modes(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const graphics_output)
-{
-    EFI_STATUS status;
-
-    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info = NULL;
-    uint64_t info_size = 0;
-
-    for (uint64_t i = 0; i < graphics_output->Mode->MaxMode; ++i) {
-        status =
-            uefi_call_wrapper(graphics_output->QueryMode, 4, graphics_output, i, &info_size, &info);
-        if (EFI_ERROR(status)) {
-            return status;
-        }
-
-        Print(L"Mode: %2d, Width: %4d, Height: %4d %s\n", i, info->HorizontalResolution,
-              info->VerticalResolution, i == graphics_output->Mode->Mode ? "(current)" : " ");
-    }
-
-    return EFI_SUCCESS;
-}
-#endif
-
 static EFI_STATUS open_file(const EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* const simple_file_system,
                             EFI_FILE** const out, EFI_FILE* const root, const CHAR16* const path)
 {
@@ -102,8 +48,7 @@ static EFI_STATUS set_graphic_mode(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const gra
     return status;
 }
 
-static EFI_STATUS load_kernel_elf(BootData* const boot_data,
-                                  const EFI_FILE_PROTOCOL* const kernel_file)
+static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address, const EFI_FILE_PROTOCOL* const kernel_file)
 {
     EFI_STATUS status;
 
@@ -175,7 +120,7 @@ static EFI_STATUS load_kernel_elf(BootData* const boot_data,
                                    ? (total_kernel_memory_size / EFI_PAGE_SIZE) + 1
                                    : (total_kernel_memory_size / EFI_PAGE_SIZE);
     status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData,
-                               number_of_pages, (void**)&boot_data->kernel_start_address);
+                               number_of_pages, (void**)kernel_start_address);
     if (EFI_ERROR(status)) {
         return status;
     }
@@ -207,7 +152,7 @@ static EFI_STATUS load_kernel_elf(BootData* const boot_data,
      * The base address is the difference between the truncated memory address
      * and the truncated `p_vaddr` value.
      */
-    uint64_t base_address = boot_data->kernel_start_address;
+    uint64_t base_address = *kernel_start_address;
     uint64_t absolute_offset = base_address > smallest_vaddr ? base_address - smallest_vaddr
                                                              : smallest_vaddr - base_address;
     uint64_t current_segment_file_size = 0;
@@ -233,7 +178,10 @@ static EFI_STATUS load_kernel_elf(BootData* const boot_data,
         }
     }
 
-    boot_data->kernel_end_address = current_load_address + last_loadable_segment_size;
+#ifdef DEBUG_KERNEL_LOAD
+    Print(L"KernelStartAddress: 0x%X", kernel_start_address);
+    Print(L"KernelEndAddress: 0x%X\n", current_load_address + last_loadable_segment_size);
+#endif
 
     return 0;
 }
@@ -242,8 +190,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
 {
     EFI_STATUS status;
     InitializeLib(image_handle, system_table);
-
-    BootData boot_data;
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* simple_file_system = NULL;
     status = uefi_call_wrapper(BS->LocateProtocol, 3, &gEfiSimpleFileSystemProtocolGuid, NULL,
@@ -277,38 +223,19 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     }
 
     Print(L"Load kernel ELF file.\n");
-    status = load_kernel_elf(&boot_data, kernel_file);
+    uint64_t kernel_start_address;
+    status = load_kernel_elf(&kernel_start_address, kernel_file);
     if (EFI_ERROR(status)) {
         Print(L"Failed to load kernel ELF file. %r\n", status);
         goto ERROR;
     }
 
-    Print(L"Kernel Info:\n");
-    Print(L"StartAddress: 0x%X, EndAddress: 0x%X\n", boot_data.kernel_start_address,
-          boot_data.kernel_end_address);
-
-    Print(L"Graphic Frame Buffer Info:\n");
-    Print(L"BaseAddress: 0x%X, BufferSize: %u, Width: %u, Height: %u\n",
-          boot_data.frame_buffer_data.address, boot_data.frame_buffer_data.size,
-          boot_data.frame_buffer_data.width, boot_data.frame_buffer_data.height);
-
-    Print(L"Exit boot services.\n");
-    uefi_call_wrapper(BS->ExitBootServices, 2, image_handle,
-                      boot_data.memory_map_data.memory_map_key);
-
-#ifdef DEBUG_BOOT_MEMORY
-    print_memory_map(boot_data.memory_map_data.memory_descriptor_buffer,
-                     boot_data.memory_map_data.memory_descriptor_buffer_size,
-                     boot_data.memory_map_data.memory_descriptor_size);
-#endif
-
     Print(L"Start kernel.\n");
-    int (*start_kernel)(BootData) =
-        (__attribute__((sysv_abi)) int (*)(const BootData))boot_data.kernel_start_address;
+    int (*start_kernel)() = (__attribute__((sysv_abi)) int (*)())kernel_start_address;
+    Print(L"%d\n", start_kernel());
 
-    Print(L"%d\n", start_kernel(boot_data));
-
-    return EFI_SUCCESS;
+    // This should be not reached...
+    return EFI_ABORTED;
 
 ERROR:
     uefi_call_wrapper(BS->Exit, 4, image_handle, EFI_ABORTED, 0, NULL);
