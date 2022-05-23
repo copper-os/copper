@@ -102,51 +102,6 @@ static EFI_STATUS set_graphic_mode(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const gra
     return status;
 }
 
-static EFI_STATUS load_font_psf1(const EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* const simple_file_system,
-                                 BootData* const boot_data, EFI_FILE_PROTOCOL* const root,
-                                 const CHAR16* const path)
-{
-    EFI_STATUS status;
-
-    EFI_FILE_PROTOCOL* font_file = NULL;
-    status = open_file(simple_file_system, &font_file, root, path);
-    if (EFI_ERROR(status)) {
-        return status;
-    }
-
-    uint64_t header_size = sizeof(boot_data->psf1_data.header);
-    uefi_call_wrapper(font_file->Read, 3, font_file, &header_size, &boot_data->psf1_data.header);
-    if (boot_data->psf1_data.header.magic[0] != PSF1_MAGIC0 &&
-        boot_data->psf1_data.header.magic[1] != PSF1_MAGIC1) {
-        return EFI_ABORTED;
-    }
-
-    uint64_t glyph_bufffer_size = 0;
-    switch (boot_data->psf1_data.header.mode) {
-    case PSF1_MODE256:
-    case PSF1_MODEHASTAB:
-        glyph_bufffer_size = boot_data->psf1_data.header.glyph_size * 256;
-        break;
-    case PSF1_MODE512:
-    case PSF1_MODEHASSEQ:
-    default:
-        /* Unsupported font format. */
-        return EFI_ABORTED;
-    }
-
-    status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, glyph_bufffer_size,
-                               (void**)&boot_data->psf1_data.glyph_buffer);
-    if (EFI_ERROR(status)) {
-        return status;
-    }
-
-    uefi_call_wrapper(font_file->SetPosition, 2, font_file, header_size);
-    uefi_call_wrapper(font_file->Read, 3, font_file, &glyph_bufffer_size,
-                      boot_data->psf1_data.glyph_buffer);
-
-    return EFI_SUCCESS;
-}
-
 static EFI_STATUS load_kernel_elf(BootData* const boot_data,
                                   const EFI_FILE_PROTOCOL* const kernel_file)
 {
@@ -336,16 +291,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     Print(L"BaseAddress: 0x%X, BufferSize: %u, Width: %u, Height: %u\n",
           boot_data.frame_buffer_data.address, boot_data.frame_buffer_data.size,
           boot_data.frame_buffer_data.width, boot_data.frame_buffer_data.height);
-
-    Print(L"Load PSF1 font.\n");
-    status = load_font_psf1(simple_file_system, &boot_data, NULL, L"zap-light16.psf");
-    if (EFI_ERROR(status)) {
-        Print(L"Failed to load PSF1 font. %r\n", status);
-        goto ERROR;
-    }
-
-    Print(L"PSF1 Font Info:\n");
-    Print(L"GlyphSize: %d\n", boot_data.psf1_data.header.glyph_size);
 
     Print(L"Exit boot services.\n");
     uefi_call_wrapper(BS->ExitBootServices, 2, image_handle,
