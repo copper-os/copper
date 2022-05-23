@@ -46,7 +46,8 @@ static EFI_STATUS set_graphic_mode(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const gra
     return status;
 }
 
-static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address, const EFI_FILE_PROTOCOL* const kernel_file)
+static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
+                                  const EFI_FILE_PROTOCOL* const kernel_file)
 {
     EFI_STATUS status;
 
