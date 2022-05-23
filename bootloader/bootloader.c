@@ -1,8 +1,6 @@
-#include <efi.h>
-#include <efilib.h>
+#include <efi/efi.h>
+#include <efi/efilib.h>
 #include <elf.h>
-#include <kernel/boot_data.h>
-#include <uefi/uefi.h>
 
 #define UEFI_MEMORY_DESCRIPTOR_BUFFER_SIZE (512)
 #define MAX_PROGRAM_HEADER_TABLE_SIZE (512)
@@ -433,4 +431,3 @@ ERROR:
 
     return EFI_ABORTED;
 }
-
