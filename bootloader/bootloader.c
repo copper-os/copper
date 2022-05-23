@@ -283,28 +283,6 @@ static EFI_STATUS load_kernel_elf(BootData* const boot_data,
     return 0;
 }
 
-static EFI_STATUS get_memory_map_data(BootData* const boot_data,
-                                      EFI_MEMORY_DESCRIPTOR* const descriptor_buffer)
-{
-    EFI_STATUS status;
-
-    boot_data->memory_map_data.memory_descriptor_buffer = descriptor_buffer;
-    boot_data->memory_map_data.memory_descriptor_buffer_size =
-        sizeof(EFI_MEMORY_DESCRIPTOR) * UEFI_MEMORY_DESCRIPTOR_BUFFER_SIZE;
-
-    status = uefi_call_wrapper(BS->GetMemoryMap, 5,
-                               &boot_data->memory_map_data.memory_descriptor_buffer_size,
-                               boot_data->memory_map_data.memory_descriptor_buffer,
-                               &boot_data->memory_map_data.memory_map_key,
-                               &boot_data->memory_map_data.memory_descriptor_size,
-                               &boot_data->memory_map_data.memory_descriptor_version);
-    if (EFI_ERROR(status)) {
-        return status;
-    }
-
-    return EFI_SUCCESS;
-}
-
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
 {
     EFI_STATUS status;
@@ -368,13 +346,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
 
     Print(L"PSF1 Font Info:\n");
     Print(L"GlyphSize: %d\n", boot_data.psf1_data.header.glyph_size);
-
-    Print(L"Get memory map of UEFI system.\n");
-    status = get_memory_map_data(&boot_data, descriptor_buffer);
-    if (EFI_ERROR(status)) {
-        Print(L"Failed to get memory map of UEFI system. %r\n", status);
-        goto ERROR;
-    }
 
     Print(L"Exit boot services.\n");
     uefi_call_wrapper(BS->ExitBootServices, 2, image_handle,
