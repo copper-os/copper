@@ -234,7 +234,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     int (*start_kernel)() = (__attribute__((sysv_abi)) int (*)())kernel_start_address;
     Print(u"%d\n", start_kernel());
 
-    // This should be not reached...
+    // This should not be reached...
     return EFI_ABORTED;
 
 ERROR:
