@@ -1,43 +1,62 @@
 ARCH := x86_64
+AR   := ar
 AS   := nasm
 CC   := clang
 
-CFLAGS = -Wall \
+SOURCE_DIR   = src
+HEADER_DIR   = include
+
+LIBRARIES = console
+LIBRARY_DIRS = $(foreach lib,$(LIBRARIES),lib/$(lib))
+
+LIBRARY_LINK_DIRS    = $(foreach libdir,$(LIBRARY_DIRS),-L$(libdir))
+LIBRARY_LINK_TARGETS = $(foreach lib,$(LIBRARIES),-l$(lib))
+
+CFLAGS = -I$(HEADER_DIR) \
+         -Wall \
          -Wextra \
          -fpie \
          -ffreestanding \
          -fshort-wchar
 
-LDFLAGS = -Bstatic \
+LDFLAGS = $(LIBRARY_LINK_DIRS) \
+          -Bstatic \
           -Bsymbolic \
           -pie \
           -nostdlib \
           --gc-sections \
           --no-undefined-version
 
-
-SRCS = $(wildcard *.c)
+SRCS = $(wildcard $(SOURCE_DIR)/*.c)
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
-ASMSRCS = $(shell find $(LIB_DIR) -name '*.S')
-ASMOBJS = $(ASMSRCS:.S=.o)
+ASM_SRCS = $(wildcard $(SOURCE_DIR)/*.S)
+ASM_OBJS = $(ASM_SRCS:.S=.o)
 
-KERNEL_LDS = kernel.lds
+LINKER_SCRIPT = kernel.lds
+
 
 all: kernel.elf
 
-kernel.elf: $(KERNEL_LDS) $(OBJS) $(ASMOBJS)
-	$(LD) -T$(KERNEL_LDS) $(LDFLAGS) -o $@ $(OBJS) $(ASMOBJS)
+kernel.elf: $(LINKER_SCRIPT) $(OBJS) $(ASM_OBJS) $(LIBRARY_DIRS)
+	$(LD) -T$(LINKER_SCRIPT) $(LDFLAGS) -o $@ $(OBJS) $(ASM_OBJS) $(LIBRARY_LINK_TARGETS)
 
-$(ASMOBJS): $(ASMSRCS)
-	$(AS) $(ASMFLAGS) -o $@ -f elf64 $(@:.o=.S)
+$(ASM_OBJS): $(ASM_SRCS)
+	$(AS) $(ASMFLAGS) -o $@ -f elf64 $^
+
+.PHONY: $(LIBRARY_DIRS)
+$(LIBRARY_DIRS):
+	$(MAKE) -C $@
 
 %.d: %.c
 	$(CC) $(CFLAGS) -MM -MT "$@ $(@:.d=.o)" $< -o $@
 
 .PHONY: clean
 clean:
-	@rm -f kernel.elf $(OBJS) $(ASMOBJS) $(DEPS)
+	@rm -f kernel $(OBJS) $(ASM_OBJS) $(DEPS)
+	@for libdir in $(LIBRARY_DIRS); do \
+		$(MAKE) -C $$libdir clean; \
+	done
 
 include $(DEPS)

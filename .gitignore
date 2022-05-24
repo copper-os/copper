@@ -3,6 +3,7 @@
 *.elf
 *.o
 *.so
+*.a
 compile_commands.json
 *.img
 .cache
