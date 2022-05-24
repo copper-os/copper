@@ -1,9 +1,5 @@
-int console_init(void)
-{
-    return 0;
-}
+#include <console/console.h>
 
-static int should_not_exposed(void)
-{
-    return 0;
-}
+int console_init(void) { return 0; }
+
+static int should_not_exposed(void) { return 0; }
