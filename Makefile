@@ -31,6 +31,10 @@ format:
 check:
 	@find . -iname '*.[ch]' | xargs clang-tidy -checks=*,clang-analyzer-*,-performance-no-int-to-ptr,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-llvmlibc-restrict-system-libc-headers,-altera-unroll-loops
 
+.PHONY: header-guard
+header-guard:
+	@find . -iname '*.[ch]' | xargs clang-tidy -checks=-*,llvm-header-guard -fix-errors
+
 .PHONY: clean
 clean:
 	@$(MAKE) -C bootloader clean

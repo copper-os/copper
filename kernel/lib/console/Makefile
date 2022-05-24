@@ -2,6 +2,7 @@ SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
+
 libconsole.a: $(OBJS)
 	$(AR) -vcrs libconsole.a $(OBJS) $(GNU_EFI_CRT)
 
