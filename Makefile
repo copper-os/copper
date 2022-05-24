@@ -29,7 +29,7 @@ format:
 
 .PHONY: format
 check:
-	@find . -iname '*.[ch]' | xargs clang-tidy -checks=*,clang-analyzer-*
+	@find . -iname '*.[ch]' | xargs clang-tidy -checks=*,clang-analyzer-*,-performance-no-int-to-ptr,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-llvmlibc-restrict-system-libc-headers,-altera-unroll-loops
 
 .PHONY: clean
 clean:

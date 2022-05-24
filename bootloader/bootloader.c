@@ -5,12 +5,10 @@
 #define MAX_PROGRAM_HEADER_TABLE_SIZE (512)
 #define GRAPHIC_MODE_NUMBER (10)
 
-static Elf64_Phdr program_header_table[MAX_PROGRAM_HEADER_TABLE_SIZE];
-
-static int strcmp(const char* const a, const char* const b, uint64_t size)
+static int strcmp(const char* const string1, const char* const string2, uint64_t size)
 {
     for (uint64_t i = 0; i < size; ++i) {
-        if (a[i] != b[i]) {
+        if (string1[i] != string2[i]) {
             return 1;
         }
     }
@@ -21,7 +19,7 @@ static int strcmp(const char* const a, const char* const b, uint64_t size)
 static EFI_STATUS open_file(const EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* const simple_file_system,
                             EFI_FILE** const out, EFI_FILE* const root, const CHAR16* const path)
 {
-    EFI_STATUS status;
+    EFI_STATUS status = 0;
 
     if (root == NULL) {
         status = uefi_call_wrapper(simple_file_system->OpenVolume, 2, simple_file_system, &root);
@@ -49,13 +47,14 @@ static EFI_STATUS set_graphic_mode(const EFI_GRAPHICS_OUTPUT_PROTOCOL* const gra
 static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
                                   const EFI_FILE_PROTOCOL* const kernel_file)
 {
-    EFI_STATUS status;
+    EFI_STATUS status = 0;
+    Elf64_Phdr program_header_table[MAX_PROGRAM_HEADER_TABLE_SIZE];
 
     Elf64_Ehdr elf_header;
     uint64_t elf_header_size = sizeof(elf_header);
     uefi_call_wrapper(kernel_file->Read, 3, kernel_file, &elf_header_size, &elf_header);
 
-    if (strcmp((char*)elf_header.e_ident, ELFMAG, SELFMAG) ||
+    if (strcmp((char*)elf_header.e_ident, ELFMAG, SELFMAG) != 0 ||
         elf_header.e_ident[EI_CLASS] != ELFCLASS64 || elf_header.e_ident[EI_DATA] != ELFDATA2LSB ||
         elf_header.e_ident[EI_VERSION] != EV_CURRENT || elf_header.e_machine != EM_X86_64 ||
         elf_header.e_version != EV_CURRENT ||
@@ -65,11 +64,11 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
     }
 
     /* Read the program header table. */
-    uint64_t program_header_table_size = elf_header.e_phentsize * elf_header.e_phnum;
+    uint64_t program_header_table_size = (uint64_t)(elf_header.e_phentsize * elf_header.e_phnum);
     uefi_call_wrapper(kernel_file->SetPosition, 2, kernel_file, elf_header.e_phoff);
     uefi_call_wrapper(kernel_file->Read, 3, kernel_file, &program_header_table_size,
                       program_header_table);
-    if (program_header_table_size != elf_header.e_phentsize * elf_header.e_phnum) {
+    if (program_header_table_size != (uint64_t)(elf_header.e_phentsize * elf_header.e_phnum)) {
         Print(u"Failed to read the program hdaer table.\n");
         Print(u"Read program header size %lu", program_header_table_size);
         return EFI_ABORTED;
@@ -187,7 +186,7 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
 
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
 {
-    EFI_STATUS status;
+    EFI_STATUS status = 0;
     InitializeLib(image_handle, system_table);
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* simple_file_system = NULL;
@@ -222,7 +221,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
     }
 
     Print(u"Load kernel ELF file.\n");
-    uint64_t kernel_start_address;
+    uint64_t kernel_start_address = 0;
     status = load_kernel_elf(&kernel_start_address, kernel_file);
     if (EFI_ERROR(status)) {
         Print(u"Failed to load kernel ELF file. %r\n", status);
