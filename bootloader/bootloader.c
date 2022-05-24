@@ -177,7 +177,7 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
     }
 
 #ifdef DEBUG_KERNEL_LOAD
-    Print(u"KernelStartAddress: 0x%X", kernel_start_address);
+    Print(u"KernelStartAddress: 0x%X\n", kernel_start_address);
     Print(u"KernelEndAddress: 0x%X\n", current_load_address + last_loadable_segment_size);
 #endif
 

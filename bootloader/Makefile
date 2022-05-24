@@ -11,7 +11,8 @@ CFLAGS = -fpie \
          -fshort-wchar \
          -mno-red-zone \
          -Wall \
-         -Wextra
+         -Wextra \
+         -DDEBUG_KERNEL_LOAD
 
 LDFLAGS = -T$(GNU_EFI_LDS) \
           -L/usr/lib \
