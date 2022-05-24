@@ -3,11 +3,14 @@ AR   := ar
 AS   := nasm
 CC   := clang
 
-SOURCE_DIR   = src
-HEADER_DIR   = include
+SOURCE_DIR        := $(CURDIR)/src
+HEADER_DIR        := $(CURDIR)/include
+LIBRARY_BASE_DIR  := $(CURDIR)/lib
+
+export HEADER_DIR
 
 LIBRARIES = console
-LIBRARY_DIRS = $(foreach lib,$(LIBRARIES),lib/$(lib))
+LIBRARY_DIRS = $(foreach lib,$(LIBRARIES),$(LIBRARY_BASE_DIR)/$(lib))
 
 LIBRARY_LINK_DIRS    = $(foreach libdir,$(LIBRARY_DIRS),-L$(libdir))
 LIBRARY_LINK_TARGETS = $(foreach lib,$(LIBRARIES),-l$(lib))
@@ -54,7 +57,7 @@ $(LIBRARY_DIRS):
 
 .PHONY: clean
 clean:
-	@rm -f kernel $(OBJS) $(ASM_OBJS) $(DEPS)
+	@rm -f kernel.elf $(OBJS) $(ASM_OBJS) $(DEPS)
 	@for libdir in $(LIBRARY_DIRS); do \
 		$(MAKE) -C $$libdir clean; \
 	done

@@ -1,1 +1,1 @@
-int test();
+int console_init(void);
