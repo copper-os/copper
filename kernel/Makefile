@@ -15,7 +15,7 @@ LIBRARY_DIRS = $(foreach lib,$(LIBRARIES),$(LIBRARY_BASE_DIR)/$(lib))
 LIBRARY_LINK_DIRS    = $(foreach libdir,$(LIBRARY_DIRS),-L$(libdir))
 LIBRARY_LINK_TARGETS = $(foreach lib,$(LIBRARIES),-l$(lib))
 
-CFLAGS = -I$(HEADER_DIR) \
+export CFLAGS = -I$(HEADER_DIR) \
          -Wall \
          -Wextra \
          -fpie \
