@@ -5,3 +5,4 @@
 *.so
 compile_commands.json
 *.img
+.cache
