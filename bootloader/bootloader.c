@@ -205,6 +205,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
         goto ERROR;
     }
 
+    // Note that print output before this line will be wiped out after setting graphic mode.
     Print(u"Set graphic mode.\n");
     status = set_graphic_mode(graphics_output);
     if (EFI_ERROR(status)) {
