@@ -1,0 +1,7 @@
+*.d
+*.efi
+*.elf
+*.o
+*.so
+compile_commands.json
+*.img
