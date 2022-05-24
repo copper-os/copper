@@ -1,7 +1,7 @@
-ARCH := x86_64
-AR   := ar
-AS   := nasm
-CC   := clang
+export ARCH := x86_64
+export AR   := ar
+export AS   := nasm
+export CC   := clang
 
 SOURCE_DIR        := $(CURDIR)/src
 HEADER_DIR        := $(CURDIR)/include
