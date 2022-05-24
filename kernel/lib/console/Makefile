@@ -4,7 +4,7 @@ DEPS = $(SRCS:.c=.d)
 
 
 libconsole.a: $(OBJS)
-	$(AR) -vcrs libconsole.a $(OBJS) $(GNU_EFI_CRT)
+	$(AR) --thin -vcrs libconsole.a $(OBJS) $(GNU_EFI_CRT)
 
 %.d: %.c
 	$(CC) $(CFLAGS) -MM -MT "$@ $(@:.d=.o)" $< -o $@
