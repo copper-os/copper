@@ -4,6 +4,8 @@ CC   := clang
 GNU_EFI_LDS = /usr/lib/elf_$(ARCH)_efi.lds
 GNU_EFI_CRT = /usr/lib/crt0-efi-$(ARCH).o
 
+LIBRARIES = efi gnuefi
+
 CFLAGS = -fpie \
          -ffreestanding \
          -fno-stack-protector \
@@ -29,7 +31,8 @@ DEPS = $(SRCS:.c=.d)
 all: bootloader.efi
 
 bootloader.efi: bootloader.so
-	objcopy -j .text \
+	objcopy \
+		-j .text \
 		-j .sdata \
 		-j .data \
 		-j .dynamic \
@@ -43,14 +46,11 @@ bootloader.efi: bootloader.so
 		--subsystem=10 \
 		$< $@
 
-bootloader.so: $(OBJS)
-	$(LD) $(LDFLAGS) $(GNU_EFI_CRT) $^ -o $@ -lefi -lgnuefi
-
-%.d: %.c
-	$(CC) $(CFLAGS) -MM -MT "$@ $(@:.d=.o)" $< -o $@
+bootloader.so: $(GNU_EFI_CRT) $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@ $(addprefix -l,$(LIBRARIES))
 
 .PHONY: clean
-clean:
-	@rm -f bootloader.efi bootloader.so $(OBJS) $(DEPS)
+clean: clean-deps-graph
+	@rm -f bootloader.efi bootloader.so $(OBJS)
 
-include $(DEPS)
+include $(MAKE_DIR)/deps-graph.mk

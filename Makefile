@@ -1,3 +1,5 @@
+export MAKE_DIR := $(CURDIR)/make
+
 COPPER_IMAGE := copper.img
 
 

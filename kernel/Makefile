@@ -12,11 +12,11 @@ export HEADER_DIR
 LIBRARIES = console
 
 export CFLAGS = -I$(HEADER_DIR) \
-         -Wall \
-         -Wextra \
-         -fpie \
-         -ffreestanding \
-         -fshort-wchar
+                -Wall \
+                -Wextra \
+                -fpie \
+                -ffreestanding \
+                -fshort-wchar
 
 LDFLAGS = $(addprefix -L$(LIBRARY_DIR)/,$(LIBRARIES)) \
           -Bstatic \
@@ -48,14 +48,11 @@ $(ASM_OBJS): $(ASM_SRCS)
 $(LIBRARIES):
 	$(MAKE) -C $(addprefix $(LIBRARY_DIR)/,$@)
 
-%.d: %.c
-	$(CC) $(CFLAGS) -MM -MT "$@ $(@:.d=.o)" $< -o $@
-
 .PHONY: clean
-clean:
-	@rm -f kernel.elf $(OBJS) $(ASM_OBJS) $(DEPS)
+clean: clean-deps-graph
+	@rm -f kernel.elf $(OBJS) $(ASM_OBJS)
 	@for libdir in $(addprefix $(LIBRARY_DIR)/,$(LIBRARIES)); do \
 		$(MAKE) -C $$libdir clean; \
 	done
 
-include $(DEPS)
+include $(MAKE_DIR)/deps-graph.mk
