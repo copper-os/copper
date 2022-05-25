@@ -3,17 +3,13 @@ export AR   := ar
 export AS   := nasm
 export CC   := clang
 
-SOURCE_DIR        := $(CURDIR)/src
-HEADER_DIR        := $(CURDIR)/include
-LIBRARY_BASE_DIR  := $(CURDIR)/lib
+SOURCE_DIR  := $(CURDIR)/src
+HEADER_DIR  := $(CURDIR)/include
+LIBRARY_DIR := $(CURDIR)/lib
 
 export HEADER_DIR
 
 LIBRARIES = console
-LIBRARY_DIRS = $(foreach lib,$(LIBRARIES),$(LIBRARY_BASE_DIR)/$(lib))
-
-LIBRARY_LINK_DIRS    = $(foreach libdir,$(LIBRARY_DIRS),-L$(libdir))
-LIBRARY_LINK_TARGETS = $(foreach lib,$(LIBRARIES),-l$(lib))
 
 export CFLAGS = -I$(HEADER_DIR) \
          -Wall \
@@ -22,7 +18,7 @@ export CFLAGS = -I$(HEADER_DIR) \
          -ffreestanding \
          -fshort-wchar
 
-LDFLAGS = $(LIBRARY_LINK_DIRS) \
+LDFLAGS = $(addprefix -L$(LIBRARY_DIR)/,$(LIBRARIES)) \
           -Bstatic \
           -Bsymbolic \
           -pie \
@@ -42,15 +38,15 @@ LINKER_SCRIPT = kernel.lds
 
 all: kernel.elf
 
-kernel.elf: $(LINKER_SCRIPT) $(OBJS) $(ASM_OBJS) $(LIBRARY_DIRS)
-	$(LD) -T$(LINKER_SCRIPT) $(LDFLAGS) -o $@ $(OBJS) $(ASM_OBJS) $(LIBRARY_LINK_TARGETS)
+kernel.elf: $(LINKER_SCRIPT) $(OBJS) $(ASM_OBJS) $(LIBRARIES)
+	$(LD) -T$(LINKER_SCRIPT) $(LDFLAGS) -o $@ $(OBJS) $(ASM_OBJS) $(addprefix -l,$(LIBRARIES))
 
 $(ASM_OBJS): $(ASM_SRCS)
 	$(AS) $(ASMFLAGS) -o $@ -f elf64 $^
 
-.PHONY: $(LIBRARY_DIRS)
-$(LIBRARY_DIRS):
-	$(MAKE) -C $@
+.PHONY: $(LIBRARIES)
+$(LIBRARIES):
+	$(MAKE) -C $(addprefix $(LIBRARY_DIR)/,$@)
 
 %.d: %.c
 	$(CC) $(CFLAGS) -MM -MT "$@ $(@:.d=.o)" $< -o $@
@@ -58,7 +54,7 @@ $(LIBRARY_DIRS):
 .PHONY: clean
 clean:
 	@rm -f kernel.elf $(OBJS) $(ASM_OBJS) $(DEPS)
-	@for libdir in $(LIBRARY_DIRS); do \
+	@for libdir in $(addprefix $(LIBRARY_DIR)/,$(LIBRARIES)); do \
 		$(MAKE) -C $$libdir clean; \
 	done
 
