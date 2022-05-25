@@ -1,13 +1,15 @@
+LIB_NAME := console
+
 SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
 
-libconsole.a: $(OBJS)
-	$(AR) --thin -vcrs libconsole.a $(OBJS) $(GNU_EFI_CRT)
+lib$(LIB_NAME).a: $(OBJS)
+	$(AR) --thin -vcrs $@ $(OBJS)
 
 .PHONY: clean
 clean: clean-deps-graph
-	@rm -f libconsole.a $(OBJS)
+	@rm -f lib$(LIB_NAME).a $(OBJS)
 
 include $(MAKE_DIR)/deps-graph.mk
