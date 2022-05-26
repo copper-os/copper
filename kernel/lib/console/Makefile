@@ -1,4 +1,4 @@
-LIB_NAME := tty
+LIB_NAME := console
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.cpp=.o)
