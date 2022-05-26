@@ -1,7 +1,7 @@
 ---
 Language:        Cpp
 BasedOnStyle:  Google
-AccessModifierOffset: -1
+AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
@@ -29,7 +29,7 @@ BraceWrapping:
   AfterClass:      false
   AfterControlStatement: false
   AfterEnum:       false
-  AfterFunction:   false
+  AfterFunction:   true
   AfterNamespace:  false
   AfterObjCDeclaration: false
   AfterStruct:     false
@@ -37,12 +37,14 @@ BraceWrapping:
   AfterExternBlock: false
   BeforeCatch:     false
   BeforeElse:      false
+  BeforeLambdaBody: false
+  BeforeWhile:     false
   IndentBraces:    false
   SplitEmptyFunction: true
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Custom
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
@@ -82,6 +84,7 @@ IncludeCategories:
     SortPriority:    0
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IncludeIsMainSourceRegex: ''
+IndentAccessModifiers: false
 IndentCaseLabels: false
 IndentGotoLabels: true
 IndentPPDirectives: None
