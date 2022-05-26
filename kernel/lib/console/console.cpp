@@ -1,5 +1,5 @@
-#include <console/console.h>
+#include <console/console.hpp>
 
-int console_init(void) { return 0; }
-
-static int should_not_exposed(void) { return 0; }
+namespace console {
+auto initialize() -> int { return 0; }
+}  // namespace console
