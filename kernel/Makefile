@@ -15,7 +15,9 @@ export CXXFLAGS = -I$(HEADER_DIR) \
                 -Wextra \
                 -fpie \
                 -ffreestanding \
-                -fshort-wchar
+                -fshort-wchar \
+                -fno-exceptions \
+                -fno-rtti
 
 LDFLAGS = $(addprefix -L$(LIBRARY_DIR)/,$(LIBRARIES)) \
           -Bstatic \
