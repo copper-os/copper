@@ -1,7 +1,7 @@
 export ARCH := x86_64
 export AR   := ar
 export AS   := nasm
-export CC   := clang
+export CXX  := clang++
 
 SOURCE_DIR  := $(CURDIR)/src
 HEADER_DIR  := $(CURDIR)/include
@@ -11,7 +11,7 @@ export HEADER_DIR
 
 LIBRARIES = console
 
-export CFLAGS = -I$(HEADER_DIR) \
+export CXXFLAGS = -I$(HEADER_DIR) \
                 -Wall \
                 -Wextra \
                 -fpie \
@@ -26,9 +26,9 @@ LDFLAGS = $(addprefix -L$(LIBRARY_DIR)/,$(LIBRARIES)) \
           --gc-sections \
           --no-undefined-version
 
-SRCS = $(wildcard $(SOURCE_DIR)/*.c)
-OBJS = $(SRCS:.c=.o)
-DEPS = $(SRCS:.c=.d)
+SRCS = $(wildcard $(SOURCE_DIR)/*.cpp)
+OBJS = $(SRCS:.cpp=.o)
+DEPS = $(SRCS:.cpp=.d)
 
 ASM_SRCS = $(wildcard $(SOURCE_DIR)/*.S)
 ASM_OBJS = $(ASM_SRCS:.S=.o)
