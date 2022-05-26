@@ -2,7 +2,7 @@
 #define CONSOLE_CONSOLE_HPP
 
 namespace console {
-auto initialize() -> int;
+int initialize();
 } // namespace console
 
 #endif

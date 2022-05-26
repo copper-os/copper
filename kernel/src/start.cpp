@@ -1,3 +1,3 @@
 extern "C" {
-auto _start(void) -> int { return 0; }
+int _start(void) { return 0; }
 }

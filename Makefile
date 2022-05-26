@@ -31,7 +31,7 @@ format:
 
 .PHONY: check
 check:
-	@find . -iname '*.[ch]' -or -iname '*.cpp' -or -iname '*.hpp' | xargs clang-tidy -checks=*,clang-analyzer-*,-llvmlibc-implementation-in-namespace,-fuchsia-trailing-return,-performance-no-int-to-ptr,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-llvmlibc-restrict-system-libc-headers,-altera-unroll-loops
+	@find . -iname '*.[ch]' -or -iname '*.cpp' -or -iname '*.hpp' | xargs clang-tidy -checks=*,clang-analyzer-*,-modernize-use-trailing-return-type,-llvmlibc-implementation-in-namespace,-performance-no-int-to-ptr,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-llvmlibc-restrict-system-libc-headers,-altera-unroll-loops
 
 .PHONY: header-guard
 header-guard:
