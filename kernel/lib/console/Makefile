@@ -1,8 +1,8 @@
 LIB_NAME := console
 
-SRCS = $(wildcard *.cpp)
-OBJS = $(SRCS:.cpp=.o)
-DEPS = $(SRCS:.cpp=.d)
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:.c=.o)
+DEPS = $(SRCS:.c=.d)
 
 
 lib$(LIB_NAME).a: $(OBJS)
