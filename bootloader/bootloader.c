@@ -120,6 +120,11 @@ static EFI_STATUS load_kernel_elf(uint64_t* kernel_start_address,
     status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData,
                                number_of_pages, (void**)kernel_start_address);
     if (EFI_ERROR(status)) {
+        Print(u"Failed to allocate pages to load kernel. %r\n", status);
+        Print(u"TotalKernelSize: %X\n", total_kernel_memory_size);
+        Print(u"LargestVaddr: %X\n", largest_vaddr);
+        Print(u"SmallestVaddr: %X\n", smallest_vaddr);
+        Print(u"LastLoadableSegSize: %X\n", last_loadable_segment_size);
         return status;
     }
 
