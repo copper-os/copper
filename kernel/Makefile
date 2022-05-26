@@ -8,7 +8,7 @@ LIBRARY_DIR := lib
 
 export HEADER_DIR  := $(CURDIR)/include
 
-LIBRARIES = console
+LIBRARIES = tty
 
 export CXXFLAGS = -I$(HEADER_DIR) \
                 -Wall \
