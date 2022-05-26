@@ -1,12 +1,5 @@
 #include <console/console.h>
 
-static int console_test(void) { return 1; }
+int console_init(void) { return 0; }
 
-int console_direct(void) { return 2; }
-
-int console_init(Console* console)
-{
-    console->state = 10;
-    console->test = &console_test;
-    return 0;
-}
+static int should_not_exposed(void) { return 0; }
