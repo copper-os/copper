@@ -17,7 +17,8 @@ export CXXFLAGS = -I$(HEADER_DIR) \
                 -ffreestanding \
                 -fshort-wchar \
                 -fno-exceptions \
-                -fno-rtti
+                -fno-rtti \
+                -std=c++17
 
 LDFLAGS = $(addprefix -L$(LIBRARY_DIR)/,$(LIBRARIES)) \
           -Bstatic \
