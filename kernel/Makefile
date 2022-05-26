@@ -3,11 +3,10 @@ export AR   := ar
 export AS   := nasm
 export CXX  := clang++
 
-SOURCE_DIR  := $(CURDIR)/src
-HEADER_DIR  := $(CURDIR)/include
-LIBRARY_DIR := $(CURDIR)/lib
+SOURCE_DIR  := src
+LIBRARY_DIR := lib
 
-export HEADER_DIR
+export HEADER_DIR  := $(CURDIR)/include
 
 LIBRARIES = console
 
